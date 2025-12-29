@@ -36,7 +36,7 @@ jobs:
           IMDB_SESSION_FILE_ID: ${{ secrets.IMDB_SESSION_FILE_ID }}
         run: |
           # Use gdown to download the file using the ID from your secrets
-          gdown --id $FILE_ID -O imdb_profile.zip
+          python -m gdown --id $FILE_ID -O imdb_profile.zip
           unzip -o imdb_profile.zip -d .
 
       - name: Verify Profile Download
