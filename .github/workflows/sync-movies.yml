@@ -17,40 +17,25 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Cache Chrome Profile
-        id: cache-profile
-        uses: actions/cache@v4
-        with:
-          path: imdb_profile # This matches the folder name in your script
-          key: ${{ runner.os }}-imdb-profile-${{ github.run_id }}
-          restore-keys: |
-            ${{ runner.os }}-imdb-profile-
-
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Download Profile from Google Drive
+      - name: Download movies.csv from Google Drive
         env:
-          IMDB_SESSION_FILE_ID: ${{ secrets.IMDB_SESSION_FILE_ID }}
+          MOVIES_FILE_ID: ${{ secrets.MOVIES_FILE_ID }}
         run: |
           # Use gdown to download the file using the ID from your secrets
-          python -m gdown --id $IMDB_SESSION_FILE_ID -O imdb_profile.zip
-          unzip -o imdb_profile.zip -d .
-
-      - name: Verify Profile Download
-        run: |
-          if [ -d "imdb_profile" ]; then
-            echo "Profile folder exists. Size:"
-            du -sh imdb_profile
-          else
-            echo "Error: imdb_profile folder not found!"
-            exit 1
-          fi
+          python -m gdown --id $MOVIES_FILE_ID -O movies.csv
 
       - name: Run Script
         env:
           OMDB_API_KEY: ${{ secrets.OMDB_API_KEY }}
-          MUST_SEE_LIST_ID: ${{ secrets.MUST_SEE_LIST_ID }}
         run: python metacritic_must_see.py
+
+      - name: Upload CSV Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-data
+          path: movies-update.log

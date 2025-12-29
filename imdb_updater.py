@@ -1,77 +1,71 @@
-import os
-import time
-from datetime import datetime
-
-import undetected_chromedriver as uc
-from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support import expected_conditions as ec
-from selenium.webdriver.support.ui import WebDriverWait
+import csv
+import datetime
 
 import metacritic_scraper
 
 
-def update_imdb_list(list_id: str, movie_url: str):
+def update_imdb_list(movie_url: str, input: str, output: str):
     metacritic_list = metacritic_scraper.get_metacritic_titles(movie_url)
     print(f"Found {len(metacritic_list)} items matching your criteria:")
-    imdb_ids = []
     for m in metacritic_list:
         print(f"- {m['title']} ({m['year']}, {m['score']} score, {m['imdb_id']})")
-        imdb_ids.append(m['imdb_id'])
 
-    clear_and_refill_imdb_list(list_id, imdb_ids)
+    generate_csv_file(metacritic_list, input, output)
 
 
-def clear_and_refill_imdb_list(list_id: str, new_ids: list[str]):
-    options = uc.ChromeOptions()
-    options.add_argument('--headless')  # Run without window
+def reconcile_lists(metacritic_list, existing):
+    existing_by_id = {d['Const']: d for d in existing}
+    existing_by_name = {(d['Title'], str(d['Year'])): d for d in existing}
+    metacritic_ids = {m['imdb_id'] for m in metacritic_list if m['imdb_id']}
 
-    # Path to the folder we cached in the YAML file
-    profile_path = os.path.join(os.getcwd(), "imdb_profile")
-    options.add_argument(f'--user-data-dir={profile_path}')
+    to_add = []
+    to_remove = []
+    to_update = []
 
-    # Important for Linux/GitHub environments
-    options.add_argument('--no-sandbox')
-    options.add_argument('--disable-dev-shm-usage')
+    for m in metacritic_list:
+        m_id = m['imdb_id']
+        m_title = m['title']
+        m_year = str(m['year'])
+        m_score = str(m['score'])
 
-    driver = uc.Chrome(options=options)
-    wait = WebDriverWait(driver, 20)
+        match = None
+        if m_id and m_id in existing_by_id:
+            match = existing_by_id[m_id]
+        elif (m_title, m_year) in existing_by_name:
+            match = existing_by_name[(m_title, m_year)]
 
-    now = datetime.now().strftime("%Y-%m-%d %H:%M")
-    new_description = f"Last updated on: {now} (UTC)"
+        if not match:
+            to_add.append(m)
+        else:
+            if str(match.get('Description')) != m_score:
+                to_update.append(m)
 
-    try:
-        # 1. Access the Edit Page Directly
-        print("Navigating to IMDb list edit page...")
-        driver.get(f"https://www.imdb.com/list/{list_id}/edit")
+    for e in existing:
+        if e['Const'] not in metacritic_ids:
+            to_remove.append(e)
 
-        # 2. Clear the list (Bulk Delete)
-        select_all = wait.until(ec.element_to_be_clickable((By.ID, "check_all")))
-        select_all.click()
-        driver.find_element(By.ID, "delete_items").click()
-        wait.until(ec.element_to_be_clickable((By.XPATH, "//input[@value='DELETE']"))).click()
-        print("List cleared successfully.")
-        time.sleep(3)
+    return to_add, to_remove, to_update
 
-        # 3. Refill the list
-        driver.get(f"https://www.imdb.com/list/{list_id}/")
-        for mid in new_ids:
-            search_box = wait.until(ec.presence_of_element_located((By.ID, "add-to-list-search")))
-            search_box.clear()
-            search_box.send_keys(mid)
-            time.sleep(2)  # Give IMDb time to process the ID
-            search_box.send_keys(Keys.ENTER)
-            print(f"Added: {mid}")
 
-        desc_box = wait.until(ec.presence_of_element_located((By.ID, "description")))
-        desc_box.clear()
-        desc_box.send_keys(new_description)
+def write_to_file(items, file):
+    for item in items:
+        file.write(f"{item.get('imdb_id')}\t{item.get('year')}\t{item.get('title')}\t{item.get('score')}\n")
 
-        # 4. Click the 'Save' button (usually at the bottom)
-        save_button = driver.find_element(By.XPATH, "//button[contains(text(), 'Save')]")
-        save_button.click()
-    except Exception as e:
-        print(f"An error occurred: {e}")
-        driver.save_screenshot("error_state.png")
-    finally:
-        driver.quit()
+
+def generate_csv_file(metacritic_list, input: str, output: str):
+    existing = None
+    with open(input, "r") as file:
+        existing = list(csv.DictReader(file))
+
+    to_add, to_remove, to_update = reconcile_lists(metacritic_list, existing)
+    with open(output, "w") as out:
+        out.write(f"Updated on: {datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")}\n")
+        out.write("Earned badge:\n\n")
+        write_to_file(to_add, out)
+
+        out.write("Lost badge:\n\n")
+        for item in to_remove:
+            out.write(f"{item.get('Const')}\t{item.get('Year')}\t{item.get('Title')}\t{item.get('Description')}\n")
+
+        out.write("Updated Metascore:\n\n")
+        write_to_file(to_update, out)

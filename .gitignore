@@ -91,3 +91,8 @@ fabric.properties
 
 imdb_profile
 __pycache__
+
+movies.csv
+series.csv
+movies-update.log
+series-update.log
