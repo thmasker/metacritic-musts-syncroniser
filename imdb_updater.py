@@ -59,13 +59,13 @@ def generate_csv_file(metacritic_list, input: str, output: str):
 
     to_add, to_remove, to_update = reconcile_lists(metacritic_list, existing)
     with open(output, "w") as out:
-        out.write(f"Updated on: {datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")}\n")
+        out.write(f"Updated on: {datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")}\n\n")
         out.write("Earned badge:\n\n")
         write_to_file(to_add, out)
 
-        out.write("Lost badge:\n\n")
+        out.write("\nLost badge:\n\n")
         for item in to_remove:
             out.write(f"{item.get('Const')}\t{item.get('Year')}\t{item.get('Title')}\t{item.get('Description')}\n")
 
-        out.write("Updated Metascore:\n\n")
+        out.write("\nUpdated Metascore:\n\n")
         write_to_file(to_update, out)
