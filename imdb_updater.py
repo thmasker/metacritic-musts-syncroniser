@@ -24,7 +24,7 @@ def update_imdb_list(list_id: str, movie_url: str):
 
 def clear_and_refill_imdb_list(list_id: str, new_ids: list[str]):
     options = uc.ChromeOptions()
-    # options.add_argument('--headless')  # Run without window
+    options.add_argument('--headless')  # Run without window
 
     # Path to the folder we cached in the YAML file
     profile_path = os.path.join(os.getcwd(), "imdb_profile")
