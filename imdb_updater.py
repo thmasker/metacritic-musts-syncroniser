@@ -15,7 +15,7 @@ def update_imdb_list(movie_url: str, input: str, output: str):
 
 def reconcile_lists(metacritic_list, existing):
     existing_by_id = {d['Const']: d for d in existing}
-    existing_by_name = {d['Title']: d for d in existing}
+    existing_by_name = {d['Title'].lower(): d for d in existing}
     metacritic_ids = {m['imdb_id'] for m in metacritic_list if m['imdb_id']}
 
     to_add = []
