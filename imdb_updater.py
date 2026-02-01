@@ -17,6 +17,7 @@ def reconcile_lists(metacritic_list, existing):
     existing_by_id = {d['Const']: d for d in existing}
     existing_by_name = {d['Title'].lower(): d for d in existing}
     metacritic_ids = {m['imdb_id'] for m in metacritic_list if m['imdb_id']}
+    metacritic_titles = {m['title'].lower() for m in metacritic_list if m['title']}
 
     to_add = []
     to_remove = []
@@ -41,7 +42,7 @@ def reconcile_lists(metacritic_list, existing):
                 to_update.append(m)
 
     for e in existing:
-        if e['Const'] not in metacritic_ids:
+        if e['Const'] not in metacritic_ids and e['Title'].lower() not in metacritic_titles:
             to_remove.append(e)
 
     return to_add, to_remove, to_update
