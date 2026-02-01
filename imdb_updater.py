@@ -25,7 +25,7 @@ def reconcile_lists(metacritic_list, existing):
 
     for m in metacritic_list:
         m_id = m['imdb_id']
-        m_title = m['title']
+        m_title = m['title'].lower()
         m_year = str(m['year'])
         m_score = str(m['score'])
 
