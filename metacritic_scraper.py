@@ -1,3 +1,5 @@
+import re
+
 import requests
 from bs4 import BeautifulSoup
 
@@ -17,12 +19,12 @@ def get_metacritic_titles(base_url: str):
 
     while keep_looking:
         # Construct URL with pagination parameter
-        url = f"{base_url}?page={current_page}"
-        print(f"Scraping page {current_page}...")
+        url = f'{base_url}?page={current_page}'
+        print(f'Scraping page {current_page}...')
 
         response = requests.get(url, headers=headers)
         if response.status_code != 200:
-            print(f"Failed to fetch page {current_page}: {response.status_code}")
+            print(f'Failed to fetch page {current_page}: {response.status_code}')
             break
 
         soup = BeautifulSoup(response.text, 'html.parser')
@@ -31,7 +33,7 @@ def get_metacritic_titles(base_url: str):
         items = soup.find_all('div', class_='c-finderProductCard')
 
         if not items:
-            print(f"No items found in page {current_page}")
+            print(f'No items found in page {current_page}')
             break
 
         for item in items:
@@ -40,10 +42,11 @@ def get_metacritic_titles(base_url: str):
             title = None
             if title_tag:
                 spans = title_tag.find_all('span')
-                title = spans[-1].get_text(strip=True)
+                metacritic_title = spans[-1].get_text(strip=True)
+                title = re.sub(r'\(\d{4}\)', '', metacritic_title).strip()
 
             if not title:
-                print(f"No title found for item in page {current_page}")
+                print(f'No title found for item in page {current_page}')
                 break
 
             # 2. Extract Metascore
@@ -51,7 +54,7 @@ def get_metacritic_titles(base_url: str):
             score = int(score_tag.get_text(strip=True)) if score_tag else 0
 
             if score < 81:
-                print(f"First movie with score < 81 found: {title}")
+                print(f'First movie with score < 81 found: {title}')
                 keep_looking = False
                 break
 
@@ -69,7 +72,7 @@ def get_metacritic_titles(base_url: str):
             if must_image and score >= 81:
                 # 4. Get IMDb ID
                 imdb_id = omdb_api.get_imdb_id(title, year)
-                results.append({'title': title, 'year': year, 'score': score, 'imdb_id': imdb_id})
+                results.append({'title': title.lower(), 'year': year, 'score': score, 'imdb_id': imdb_id})
 
         current_page += 1
 

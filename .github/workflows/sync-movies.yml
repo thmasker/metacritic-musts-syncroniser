@@ -25,9 +25,11 @@ jobs:
       - name: Download movies.csv from Google Drive
         env:
           MOVIES_FILE_ID: ${{ secrets.MOVIES_FILE_ID }}
+          PROBLEMATIC_MOVIES_FILE_ID: ${{ secrets.PROBLEMATIC_MOVIES_FILE_ID }}
         run: |
           # Use gdown to download the file using the ID from your secrets
           python -m gdown --id $MOVIES_FILE_ID -O movies.csv
+          python -m gdown --id PROBLEMATIC_MOVIES_FILE_ID -O problematic-movies.json
 
       - name: Run Script
         env:
