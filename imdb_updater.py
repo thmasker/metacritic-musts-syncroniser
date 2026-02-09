@@ -103,7 +103,7 @@ def generate_csv_file(metacritic_list, input: str, problematic_input: str, outpu
 
         out.write('\nLost badge:\n\n')
         for item in to_remove:
-            out.write(f'{item.get('Const')}\t{item.get('Year')}\t{item.get('Title')}\t{item.get('Description')}\n')
+            out.write(f'{item.get('Const')}\t{item.get('Year')}\t{item.get('Original Title')}\t{item.get('Description')}\n')
 
         out.write('\nUpdated Metascore:\n\n')
         write_to_file(to_update, out)
