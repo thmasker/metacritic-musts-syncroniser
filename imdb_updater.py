@@ -15,12 +15,13 @@ def update_imdb_list(movie_url: str, input: str, problematic_input: str, output:
 
 
 def get_existing_lists(existing):
-    existing_by_id, existing_by_name = {}, {}
+    existing_by_id, existing_by_name, existing_by_original_name = {}, {}, {}
     for e in existing:
         existing_by_id[e['Const']] = e
         existing_by_name[e['Title'].lower()] = e
+        existing_by_original_name[e['Original Title'].lower()] = e
 
-    return existing_by_id, existing_by_name
+    return existing_by_id, existing_by_name, existing_by_original_name
 
 
 def get_metacritic_lists(metacritic_list):
@@ -44,7 +45,7 @@ def get_problematic_lists(problematic):
 
 
 def reconcile_lists(metacritic_list, existing, problematic):
-    existing_by_id, existing_by_name = get_existing_lists(existing)
+    existing_by_id, existing_by_name, existing_by_original_name = get_existing_lists(existing)
     metacritic_ids, metacritic_titles = get_metacritic_lists(metacritic_list)
     problematic_imdb, problematic_metacritic = get_problematic_lists(problematic)
 
@@ -62,6 +63,8 @@ def reconcile_lists(metacritic_list, existing, problematic):
             match = existing_by_id[m_id]
         elif m_title in existing_by_name:
             match = existing_by_name[m_title]
+        elif m_title in existing_by_original_name:
+            match = existing_by_original_name[m_title]
         elif m_title in problematic_metacritic:
             match = existing_by_id[problematic_metacritic[m_title]]
 
@@ -73,7 +76,7 @@ def reconcile_lists(metacritic_list, existing, problematic):
 
     for e in existing:
         if (e['Const'] not in metacritic_ids and e['Title'].lower() not in metacritic_titles
-                and e['Title'] not in problematic_imdb):
+                and e['Original Title'].lower() not in metacritic_titles and e['Title'] not in problematic_imdb):
             to_remove.append(e)
 
     return to_add, to_remove, to_update
