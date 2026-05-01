@@ -30,7 +30,7 @@ def get_metacritic_titles(base_url: str):
         soup = BeautifulSoup(response.text, 'html.parser')
 
         # We look for the movie/show containers
-        items = soup.find_all('div', class_='c-finderProductCard')
+        items = soup.find_all('div', attrs={'data-testid': 'filter-results'})
 
         if not items:
             print(f'No items found in page {current_page}')
@@ -38,7 +38,7 @@ def get_metacritic_titles(base_url: str):
 
         for item in items:
             # 1. Extract Title
-            title_tag = item.find('div', class_='c-finderProductCard_title')
+            title_tag = item.find('h3', attrs={'data-testid': 'product-title'})
             title = None
             if title_tag:
                 spans = title_tag.find_all('span')
@@ -59,9 +59,10 @@ def get_metacritic_titles(base_url: str):
                 break
 
             # 3. Extract Must See/Watch badge
-            must_image = item.find('img', class_='c-finderProductCard_mustImage')
+            must_image = item.find('img', class_='c-global-image__img')
 
-            meta = item.find('div', class_='c-finderProductCard_meta')
+            meta = item.find('div',
+                             class_='overflow-hidden text-ellipsis line-clamp-1 wrap-break-word text-xs leading-6 max-h-6 uppercase mb-1')
             year = None
             if meta:
                 spans = meta.find_all('span')
