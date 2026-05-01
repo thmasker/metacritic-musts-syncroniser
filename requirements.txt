@@ -1,4 +1,4 @@
-requests==2.32.5
-beautifulsoup4==4.14.3
-setuptools==80.9.0
-gdown
+requests~=2.33.1
+beautifulsoup4~=4.14.3
+setuptools~=82.0.1
+gdown~=6.0.0

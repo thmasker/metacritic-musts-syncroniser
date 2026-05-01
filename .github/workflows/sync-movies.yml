@@ -28,8 +28,8 @@ jobs:
           PROBLEMATIC_MOVIES_FILE_ID: ${{ secrets.PROBLEMATIC_MOVIES_FILE_ID }}
         run: |
           # Use gdown to download the file using the ID from your secrets
-          python -m gdown --id $MOVIES_FILE_ID -O movies.csv
-          python -m gdown --id $PROBLEMATIC_MOVIES_FILE_ID -O problematic-movies.json
+          python -m gdown $MOVIES_FILE_ID -O movies.csv
+          python -m gdown $PROBLEMATIC_MOVIES_FILE_ID -O problematic-movies.json
 
       - name: Run Script
         env:

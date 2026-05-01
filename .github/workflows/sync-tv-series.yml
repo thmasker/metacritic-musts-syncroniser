@@ -28,8 +28,8 @@ jobs:
           PROBLEMATIC_SERIES_FILE_ID: ${{ secrets.PROBLEMATIC_SERIES_FILE_ID }}
         run: |
           # Use gdown to download the file using the ID from your secrets
-          python -m gdown --id $SERIES_FILE_ID -O series.csv
-          python -m gdown --id $PROBLEMATIC_SERIES_FILE_ID -O problematic-series.json
+          python -m gdown $SERIES_FILE_ID -O series.csv
+          python -m gdown $PROBLEMATIC_SERIES_FILE_ID -O problematic-series.json
 
       - name: Run Script
         env:
